@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — Enrico Alvares</title>
+
+  <!-- 1) Correct path to your stylesheet -->
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+  <header>
+    <!-- 2) Add the .navbar class so your nav CSS actually applies -->
+    <nav class="navbar">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Contact</h1>
+
+    <div class="contact-card">
+
+      <p class="contact-intro">
+        If you'd like to get in touch, please use the form below. 
+        I will reply within 24 hours.
+      </p>
+
+      <form id="contactForm" action="/api/contact" method="POST">
+
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="6" required></textarea>
+
+        <button type="submit" class="send-btn">Send</button>
+
+      </form>
+
+      <!-- Status + debug outputs used by the script -->
+      <p id="result"></p>
+      <pre id="debug-box" style="white-space: pre-wrap; font-size: 0.85rem;"></pre>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025 Enrico Alvares</p>
+  </footer>
+
+  <script>
+    // 3) Match the form ID in JS to the actual form: contactForm
+    const contactForm = document.getElementById("contactForm");
+    const result = document.getElementById("result");
+    const debugBox = document.getElementById("debug-box");
+
+    if (contactForm) {
+      contactForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Clear previous status
+        result.textContent = "Sending…";
+        result.style.color = "black";
+        debugBox.textContent = "";
+        
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const message = document.getElementById("message").value.trim();
+        
+        // Basic client-side validation
+        if (!name || !email || !message) {
+          result.textContent = "Please fill out all required fields.";
+          result.style.color = "orange";
+          return;
+        }
+
+        try {
+          const workerUrl = "https://enricoalvares.com/api/contact"; 
+          
+          const response = await fetch(workerUrl, {
+            method: "POST",
+            mode: "cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, message })
+          });
+
+          if (response.ok) {
+            result.textContent = "Message sent successfully! Thank you.";
+            result.style.color = "green";
+            contactForm.reset();
+          } else {
+            const errorData = await response.json().catch(() => ({})); 
+            console.error("Worker Error:", response.status, errorData);
+            
+            let errorDetail = `Status ${response.status}.`;
+            if (errorData.error) {
+              errorDetail = `${errorData.error}`;
+            } else if (errorData.postmark) {
+              errorDetail = `Postmark Error: ${JSON.stringify(errorData.postmark)}`;
+            }
+
+            debugBox.textContent = `Submission Failed: ${errorDetail}`;
+            result.textContent = "There was an error sending your message.";
+            result.style.color = "red";
+          }
+        } catch (err) {
+          console.error("Network/CORS Error:", err);
+          debugBox.textContent = `Network Error: ${err.message}. Please check browser console for details.`;
+          result.textContent = "A network error occurred — please check your connection or try again.";
+          result.style.color = "red";
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

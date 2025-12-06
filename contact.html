@@ -42,7 +42,8 @@
 
         <label for="message">Message</label>
         <textarea id="message" name="message" rows="6" required></textarea>
-
+<!-- honeypot field (hidden from humans, bots will fill it) -->
+<input type="text" name="website" id="website" autocomplete="off" style="display:none;">
         <button type="submit" class="send-btn">Send</button>
 
       </form>
